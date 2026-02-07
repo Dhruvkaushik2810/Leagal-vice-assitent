@@ -13,14 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent
 class VoiceLegalUI:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.root.title("Legal Voice Assistant")
+        self.root.title("Legal Advisor")
         self.root.geometry("880x620")
         self.root.configure(bg="#0f172a")
         self.processes = {}
 
         title = tk.Label(
             root,
-            text="Legal Voice Assistant",
+            text="Legal Advisor",
             font=("Segoe UI", 18, "bold"),
             fg="white",
             bg="#0f172a"

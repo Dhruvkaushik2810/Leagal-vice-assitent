@@ -85,4 +85,4 @@ if (SpeechRecognition) {
   micBtn.textContent = "Speech not supported";
 }
 
-addMessage("assistant", "Hello, I am Deak. How can I assist you?");
+addMessage("assistant", "Hello, I am your Legal Advisor. How can I assist you?");
