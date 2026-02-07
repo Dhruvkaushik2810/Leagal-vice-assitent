@@ -1,0 +1,8 @@
+sentence-transformers
+chromadb
+ollama
+pyaudio
+vosk
+pyttsx3
+webrtcvad
+flask

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal Voice Assistant</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid"></div>
+  </div>
+
+  <main class="shell">
+    <header class="hero">
+      <div class="brand">
+        <h1>Legal Voice Assistant</h1>
+        <p>Understand your situation, get structured guidance, and next steps with IPC context.</p>
+      </div>
+      <div class="pill">
+        <div class="dot"></div>
+        <span id="status">Idle</span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div id="chat" class="chat"></div>
+      <div class="composer">
+        <textarea id="input" rows="3" placeholder="Describe your situation in detail..."></textarea>
+        <div class="actions">
+          <button id="sendBtn" class="btn primary">Send</button>
+          <button id="micBtn" class="btn ghost">Speak</button>
+          <button id="clearBtn" class="btn subtle">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tips">
+      <h2>Tips for better guidance</h2>
+      <ul>
+        <li>Include what happened, where, when, who is involved, and what you want to do next.</li>
+        <li>Keep it factual. The assistant will ask clarifying questions if needed.</li>
+        <li>For best results on voice, use a quiet room and speak clearly.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
