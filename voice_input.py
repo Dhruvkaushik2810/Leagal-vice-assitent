@@ -14,9 +14,9 @@ MODEL_PATH = BASE_DIR / "vosk-model-small-en-us-0.15"
 # ---------- AUDIO CONFIG ----------
 SAMPLE_RATE = 16000
 CHANNELS = 1
-FRAME_DURATION_MS = 30  # 10, 20, or 30 for webrtcvad
-FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)  # samples per frame
-FRAME_BYTES = FRAME_SIZE * 2  # 16-bit audio
+FRAME_DURATION_MS = 30
+FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
+FRAME_BYTES = FRAME_SIZE * 2
 MAX_SILENCE_FRAMES = int(0.8 * 1000 / FRAME_DURATION_MS)
 MIN_SPEECH_FRAMES = int(0.2 * 1000 / FRAME_DURATION_MS)
 START_TIMEOUT_SECONDS = 6
@@ -29,7 +29,7 @@ rec = vosk.KaldiRecognizer(model, SAMPLE_RATE)
 rec.SetWords(True)
 
 # ---------- VAD ----------
-vad = webrtcvad.Vad(1)  # 0-3, higher = more aggressive noise filtering
+vad = webrtcvad.Vad(1)
 
 # ---------- MIC ----------
 p = pyaudio.PyAudio()
@@ -42,6 +42,7 @@ stream = p.open(
 )
 stream.start_stream()
 
+
 def calibrate_noise(seconds: float = 1.0) -> int:
     frames = []
     end_time = time.time() + seconds
@@ -52,13 +53,15 @@ def calibrate_noise(seconds: float = 1.0) -> int:
     base_noise = int(sum(rms_values) / max(1, len(rms_values)))
     return max(MIN_NOISE_FLOOR, int(base_noise * NOISE_MULTIPLIER))
 
-print("🔈 Stay silent for calibration...")
+
+print("Stay silent for calibration...")
 time.sleep(0.3)
 noise_threshold = calibrate_noise()
 
-print("🎤 English voice input started")
-print("👉 Speak clearly | Say 'exit' to stop")
-print(f"🔇 Noise threshold: {noise_threshold}\n")
+print("English voice input started")
+print("Speak clearly | Say 'exit' to stop")
+print(f"Noise threshold: {noise_threshold}\n")
+
 
 def listen_once() -> str:
     speech_frames = []
@@ -93,22 +96,23 @@ def listen_once() -> str:
     result = json.loads(rec.FinalResult()).get("text", "").strip()
     return result
 
+
 try:
     while True:
-        print("🎧 Listening...")
+        print("Listening...")
         text = listen_once()
 
         if not text:
             continue
 
-        print("🗣️ You said:", text)
+        print("You said:", text)
 
         if "exit" in text:
-            print("🛑 Exiting")
+            print("Exiting")
             break
 
 except KeyboardInterrupt:
-    print("\n🛑 Stopped")
+    print("\nStopped")
 
 finally:
     stream.stop_stream()

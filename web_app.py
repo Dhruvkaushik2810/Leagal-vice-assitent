@@ -30,6 +30,9 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 MODEL_NAME = "mistral"
 MAX_HISTORY_TURNS = 6
 SESSIONS = {}
+BLOCKED_PHRASES = [
+    "Personal data shall be collected and processed solely for lawful purposes directly related to the performance of this Agreement and shall not be used in any manner inconsistent with such purposes."
+]
 
 
 def _get_session_id() -> str:
@@ -49,9 +52,16 @@ def _history_text(session_id: str) -> str:
         lines.append(f"{role.capitalize()}: {content}")
     return "\n".join(lines)
 
+def _clean_answer(text: str) -> str:
+    cleaned = text
+    for phrase in BLOCKED_PHRASES:
+        cleaned = cleaned.replace(phrase, "").strip()
+    return cleaned
+
 
 def rag_answer(query: str, session_id: str) -> str:
-    if len(query.split()) < 4:
+    lower_q = query.lower()
+    if "ipc" not in lower_q and len(query.split()) < 4:
         return (
             "Please share more details so I can guide you. "
             "For example: what happened, where, when, who is involved, and what outcome you want."
@@ -70,6 +80,7 @@ You MUST mention IPC Section number.
 Your job is to help the user understand their situation and guide them with next steps.
 If details are missing, ask 3 short clarification questions first.
 Keep the response simple, structured, and practical.
+Do NOT include unrelated policy text or boilerplate.
 
 Format:
 1) Summary of the situation in 1-2 lines.
@@ -96,7 +107,7 @@ This is for educational purposes only. Consult a licensed lawyer for legal advic
             model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}]
         )
-        return response["message"]["content"]
+        return _clean_answer(response["message"]["content"])
     except Exception as exc:
         err_text = str(exc).lower()
         if "cuda" in err_text or "gpu" in err_text:
@@ -106,7 +117,7 @@ This is for educational purposes only. Consult a licensed lawyer for legal advic
                     messages=[{"role": "user", "content": prompt}],
                     options={"num_gpu": 0}
                 )
-                return response["message"]["content"]
+                return _clean_answer(response["message"]["content"])
             except Exception:
                 return "Ollama GPU error. Start Ollama in CPU mode and retry."
         return "LLM error. Please retry."

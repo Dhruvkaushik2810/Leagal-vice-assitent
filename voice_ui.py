@@ -100,7 +100,7 @@ class VoiceLegalUI:
         self._add_tool_button(launcher, "Query Search", "query_search.py", 2, 1)
         self._add_tool_button(launcher, "Generate Answer", "generate_answer.py", 2, 2)
 
-        greeting = "Hello, I am Deak. How can I assist you?"
+        greeting = "Hello, I am your Legal Advisor. How can I assist you?"
         self._append_chat("Assistant", greeting)
         self.root.after(300, self.start_main_assistant)
 

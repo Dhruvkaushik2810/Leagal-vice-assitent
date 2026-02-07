@@ -21,7 +21,7 @@ if not VOSK_MODEL.exists():
     raise FileNotFoundError(f"Vosk model not found at {VOSK_MODEL}")
 
 # ================= INIT =================
-print("🔧 Initializing components...")
+print("Initializing components...")
 
 # ---------- AUDIO CONFIG ----------
 SAMPLE_RATE = 16000
@@ -53,6 +53,7 @@ stream = p.open(
 )
 stream.start_stream()
 
+
 def calibrate_noise(seconds: float = 1.0) -> int:
     frames = []
     end_time = time.time() + seconds
@@ -63,7 +64,8 @@ def calibrate_noise(seconds: float = 1.0) -> int:
     base_noise = int(sum(rms_values) / max(1, len(rms_values)))
     return max(MIN_NOISE_FLOOR, int(base_noise * NOISE_MULTIPLIER))
 
-print("🔈 Stay silent for calibration...")
+
+print("Stay silent for calibration...")
 time.sleep(0.3)
 noise_threshold = calibrate_noise()
 
@@ -80,12 +82,16 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 MODEL_NAME = "mistral"
 MAX_HISTORY_TURNS = 6
 chat_history = []
+BLOCKED_PHRASES = [
+    "Personal data shall be collected and processed solely for lawful purposes directly related to the performance of this Agreement and shall not be used in any manner inconsistent with such purposes."
+]
 
-print("✅ Voice Legal Agent READY")
-print(f"🔇 Noise threshold: {noise_threshold}")
-print("👉 Bolo | Band karne ke liye 'band karo'\n")
+print("Voice Legal Agent READY")
+print(f"Noise threshold: {noise_threshold}")
+print("Say 'band karo' to stop.\n")
 
 # ================= FUNCTIONS =================
+
 def listen():
     speech_frames = []
     silence_frames = 0
@@ -118,10 +124,12 @@ def listen():
         rec.AcceptWaveform(f)
     return json.loads(rec.FinalResult()).get("text", "").strip()
 
+
 def speak(text):
-    print("🔊 Agent bol raha hai...")
+    print("Assistant speaking...")
     engine.say(text)
     engine.runAndWait()
+
 
 def _history_text() -> str:
     if not chat_history:
@@ -133,8 +141,16 @@ def _history_text() -> str:
         lines.append(f"{role.capitalize()}: {content}")
     return "\n".join(lines)
 
+
+def _clean_answer(text: str) -> str:
+    cleaned = text
+    for phrase in BLOCKED_PHRASES:
+        cleaned = cleaned.replace(phrase, "").strip()
+    return cleaned
+
+
 def rag_answer(query):
-    print("🧠 RAG thinking...")
+    print("RAG thinking...")
     if len(query.split()) < 4:
         return (
             "Please share more details so I can guide you. "
@@ -153,6 +169,7 @@ You MUST mention IPC Section number.
 Your job is to help the user understand their situation and guide them with next steps.
 If details are missing, ask 3 short clarification questions first.
 Keep the response simple, structured, and practical.
+Do NOT include unrelated policy text or boilerplate.
 
 Format:
 1) Summary of the situation in 1-2 lines.
@@ -179,7 +196,7 @@ This is for educational purposes only. Consult a licensed lawyer for legal advic
             model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}]
         )
-        return response["message"]["content"]
+        return _clean_answer(response["message"]["content"])
     except Exception as exc:
         err_text = str(exc).lower()
         if "cuda" in err_text or "gpu" in err_text:
@@ -189,19 +206,18 @@ This is for educational purposes only. Consult a licensed lawyer for legal advic
                     messages=[{"role": "user", "content": prompt}],
                     options={"num_gpu": 0}
                 )
-                return response["message"]["content"]
+                return _clean_answer(response["message"]["content"])
             except Exception:
-                return (
-                    "Ollama GPU error. Start Ollama in CPU mode and retry."
-                )
+                return "Ollama GPU error. Start Ollama in CPU mode and retry."
         return "LLM error. Please retry."
+
 
 # ================= MAIN LOOP =================
 try:
     while True:
-        print("🎧 Listening...")
+        print("Listening...")
         query = listen()
-        print("🗣️ You said:", query)
+        print("You said:", query)
 
         if not query:
             continue
@@ -211,13 +227,13 @@ try:
             break
 
         answer = rag_answer(query)
-        print("\n🧠 Agent Reply:\n", answer)
+        print("\nAgent Reply:\n", answer)
         speak(answer)
         chat_history.append({"role": "user", "content": query})
         chat_history.append({"role": "assistant", "content": answer})
 
 except KeyboardInterrupt:
-    print("\n🛑 Manually stopped")
+    print("\nManually stopped")
 
 finally:
     stream.stop_stream()
